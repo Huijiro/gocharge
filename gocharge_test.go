@@ -1,7 +1,7 @@
 package gocharge_test
 
 import (
-	"log"
+	"errors"
 	"net/http"
 	"testing"
 	"time"
@@ -29,31 +29,33 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerRouteRegister(t *testing.T) {
-	server.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("test"))
+	server.Get("/", func(w gocharge.Response[any], r gocharge.Request[any]) error {
+		return nil
 	})
 
-	resp, err := http.Get("http://" + addr + "/test")
+	resp, err := http.Get("http://" + addr + "/")
 
 	if err != nil {
 		t.Error(err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		t.Error("status code is not 200")
+		t.Errorf("status code is not 200, server responded with: %s", resp.Status)
 	}
 }
 
-func TestServerHealth(t *testing.T) {
-	resp, err := http.Get("http://" + addr + "/_health")
+func TestError(t *testing.T) {
+	server.Get("/should-error", func(w gocharge.Response[any], r gocharge.Request[any]) error {
+		return errors.New("test")
+	})
 
-	log.Printf("Checking server health on: %v", addr)
+	resp, err := http.Get("http://" + addr + "/should-error")
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		t.Error("status code is not 200")
+	if resp.StatusCode != http.StatusInternalServerError {
+		t.Errorf("status code is not 500, server responded with: %s", resp.Status)
 	}
 }
