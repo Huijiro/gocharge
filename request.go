@@ -11,7 +11,7 @@ type Request[T any] struct {
 }
 
 func (r *Request[T]) JSON() (*T, error) {
-	err := json.NewDecoder(r.Body).Decode(r.Data)
+	err := json.NewDecoder(r.Body).Decode(&r.Data)
 
 	if err != nil {
 		return nil, err

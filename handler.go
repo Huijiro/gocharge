@@ -1,7 +1,7 @@
 package gocharge
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -16,7 +16,7 @@ type RTypes interface {
 type HandlerFunc[W WTypes, R RTypes] func(w Response[W], r Request[R]) error
 
 func RegisterHandler[W WTypes, R RTypes](s *Server, path string, handler HandlerFunc[W, R]) {
-	fmt.Printf("Registering handler: %s", path)
+	log.Printf("Registering handler: %s", path)
 	s.Handler.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		response := Response[W]{
 			ResponseWriter: w,
