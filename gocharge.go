@@ -1,43 +1,21 @@
 package gocharge
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type Server struct {
-	DefaultMux *http.ServeMux
-	Internal   *http.Server
+	http.Server
+	Handler *http.ServeMux
 }
 
-type Options struct {
-	Address string
-}
-
-func (s *Server) Get(path string, handler http.HandlerFunc) {
-	s.DefaultMux.HandleFunc("GET "+path, handler)
-}
-
-func (s *Server) Post(path string, handler http.HandlerFunc) {
-	s.DefaultMux.HandleFunc("POST "+path, handler)
-}
-
-func (s *Server) Put(path string, handler http.HandlerFunc) {
-	s.DefaultMux.HandleFunc("PUT "+path, handler)
-}
-
-func (s *Server) Delete(path string, handler http.HandlerFunc) {
-	s.DefaultMux.HandleFunc("DELETE "+path, handler)
-}
-
-func (s *Server) ListenAndServe() error {
-	return s.Internal.ListenAndServe()
-}
-
-func New(options *Options) *Server {
+func New(addr string) *Server {
 	mux := http.NewServeMux()
 	return &Server{
-		DefaultMux: mux,
-		Internal: &http.Server{
-			Addr:    options.Address,
+		Server: http.Server{
+			Addr:    addr,
 			Handler: mux,
 		},
+		Handler: mux,
 	}
 }

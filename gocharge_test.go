@@ -1,7 +1,8 @@
 package gocharge_test
 
 import (
-	"log"
+	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -15,12 +16,13 @@ var server *gocharge.Server
 func TestMain(m *testing.M) {
 	addr = ":8080"
 	server = gocharge.New(
-		&gocharge.Options{
-			Address: addr,
-		},
+		addr,
 	)
 
+	// Wait for the server to start before cont
 	go server.ListenAndServe()
+
+	fmt.Println("Server started")
 
 	// If the server ever takes more than 300 ms to start my code is shit and I should rethink it.
 	time.Sleep(300 * time.Millisecond)
@@ -28,32 +30,23 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-func TestServerRouteRegister(t *testing.T) {
-	server.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("test"))
+func TestServer(t *testing.T) {
+	server.Handler.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello World"))
 	})
 
-	resp, err := http.Get("http://" + addr + "/test")
-
+	response, err := http.Get("http://localhost:8080")
 	if err != nil {
-		t.Error(err)
+		t.Errorf("Error: %v", err)
 	}
+	defer response.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Error("status code is not 200")
-	}
-}
-
-func TestServerHealth(t *testing.T) {
-	resp, err := http.Get("http://" + addr + "/_health")
-
-	log.Printf("Checking server health on: %v", addr)
-
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		t.Error(err)
+		t.Errorf("Error: %v", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		t.Error("status code is not 200")
+	if string(body) != "Hello World" {
+		t.Errorf("Expected: %v, got: %v", "Hello World", string(body))
 	}
 }
