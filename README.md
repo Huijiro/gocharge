@@ -453,18 +453,6 @@ MIT License - see [LICENSE.md](LICENSE.md) for details
 - **Hello World Example**: [`examples/hello-world`](examples/hello-world)
 - **CI/CD Pipeline**: [`.github/CI-CD.md`](.github/CI-CD.md)
 
-## Roadmap
-
-Future enhancements (non-breaking):
-
-- [ ] Request body size limits
-- [ ] CORS middleware
-- [ ] Rate limiting middleware
-- [ ] OpenAPI/Swagger generation
-- [ ] Graceful shutdown helpers
-- [ ] Request timeout utilities
-- [ ] Form data support
-
 ## FAQ
 
 **Q: Why no external dependencies?**  
