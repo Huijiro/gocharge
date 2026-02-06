@@ -117,6 +117,7 @@ func TestResponseChaining(t *testing.T) {
 }
 
 // TestValidationError demonstrates custom error handling
+// nolint:gocyclo
 func TestValidationError(t *testing.T) {
 	type ValidateRequest struct {
 		Name string `json:"name"`

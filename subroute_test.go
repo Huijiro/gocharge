@@ -301,10 +301,6 @@ func TestSubRouteErrorHandlingInSubRoutes(t *testing.T) {
 // TestSubRouteRESTfulPattern demonstrates RESTful API pattern with sub-routes
 // Pattern: GET /items (list), POST /items (create), GET /items/{id} (get), PUT /items/{id} (update)
 func TestSubRouteRESTfulPattern(t *testing.T) {
-	type ItemCreateRequest struct {
-		Name string `json:"name"`
-	}
-
 	type ItemResponse struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`

@@ -32,9 +32,13 @@ func TestHandler(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error: %v", err)
 	}
+	defer response.Body.Close()
 
 	serverResponse := &TypeResponse{}
 	err = json.NewDecoder(response.Body).Decode(&serverResponse)
+	if err != nil {
+		t.Errorf("Error decoding response: %v", err)
+	}
 
 	if !reflect.DeepEqual(serverResponse, testResponse) {
 		t.Errorf("Expected: %v, got: %v", testResponse, serverResponse)
@@ -56,6 +60,9 @@ func TestStringHandler(t *testing.T) {
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		t.Errorf("Error reading body: %v", err)
+	}
 
 	if string(body) != testResponse {
 		t.Errorf("Expected: %v, got: %v", testResponse, string(body))
@@ -80,6 +87,9 @@ func TestRequest(t *testing.T) {
 	})
 
 	body, err := json.Marshal(testResponse)
+	if err != nil {
+		t.Errorf("Error marshaling: %v", err)
+	}
 
 	request, err := http.NewRequest("GET", "http://localhost:8080/testRequest", bytes.NewBuffer(body))
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/huijiro/go-charge"
+	gocharge "github.com/huijiro/go-charge"
 )
 
 // LoggingMiddleware logs HTTP requests and responses

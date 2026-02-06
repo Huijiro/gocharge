@@ -2,6 +2,7 @@ package gocharge
 
 import (
 	"context"
+	"errors"
 	"net/http"
 )
 
@@ -176,9 +177,10 @@ type DefaultErrorEncoder struct{}
 //
 // For Errorable errors, extracts the code and status.
 // For other errors, returns a generic 500 response.
-func (enc *DefaultErrorEncoder) Encode(ctx context.Context, err error) (ErrorResponse, int) {
+func (enc *DefaultErrorEncoder) Encode(_ context.Context, err error) (ErrorResponse, int) {
 	// Check if error implements Errorable
-	if appErr, ok := err.(Errorable); ok {
+	var appErr Errorable
+	if errors.As(err, &appErr) {
 		return ErrorResponse{
 			Code:    string(appErr.Code()),
 			Message: appErr.Error(),

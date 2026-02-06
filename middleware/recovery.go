@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/huijiro/go-charge"
+	gocharge "github.com/huijiro/go-charge"
 )
 
 // RecoveryMiddleware recovers from panics and returns a 500 error response
