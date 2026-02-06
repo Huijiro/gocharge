@@ -2,14 +2,14 @@
 
 A **production-ready, fully typed HTTP backend framework** for Go 1.18+ using only the Go standard library.
 
-[![Go Version](https://img.shields.io/badge/go-1.22+-00ADD8?style=flat-square&logo=go)](https://golang.org/doc/devel/release)
+[![Go Version](https://img.shields.io/badge/go-1.25.6+-00ADD8?style=flat-square&logo=go)](https://golang.org/doc/devel/release)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE.md)
 [![Tests](https://img.shields.io/badge/tests-54+-green?style=flat-square)](.github/workflows/go.yml)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square)](#no-external-dependencies)
 
 ## Why GoCharge?
 
-GoCharge eliminates boilerplate and provides **compile-time type safety** for your HTTP handlers without external dependencies. Build fast, maintainable APIs with confidence.
+GoCharge eliminates boilerplate and provides **compile-time type safety** for your HTTP handlers without external dependencies. Requires Go 1.25.6+ to take advantage of all features including method-aware routing. Build fast, maintainable APIs with confidence.
 
 ```go
 // Type-safe handlers with automatic error handling
@@ -72,7 +72,7 @@ go get github.com/huijiro/go-charge
 ```
 
 **Requirements:**
-- Go 1.22 or later (for method-aware paths)
+- Go 1.25.6 or later (for method-aware paths and full feature support)
 - No external dependencies
 
 ## Quick Start

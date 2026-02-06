@@ -1,3 +1,3 @@
 module github.com/huijiro/go-charge
 
-go 1.24.2
+go 1.25.6

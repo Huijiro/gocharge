@@ -15,12 +15,13 @@ Runs comprehensive tests and code quality checks on all pushes and pull requests
 #### Jobs
 
 **Test Job**
-- Runs on multiple Go versions: 1.21, 1.22, 1.25
+- Runs on multiple Go versions: 1.22, 1.25.6
 - Steps:
   - Build verification
   - Unit tests with race detector (`-race` flag)
   - Coverage reports (uploaded to Codecov)
 - Platforms: Ubuntu Latest
+- Minimum supported version: Go 1.25.6
 
 **Lint Job**
 - Code quality analysis using `golangci-lint`
@@ -178,7 +179,7 @@ Potential enhancements to CI/CD:
 
 ### Tests Fail on My Machine
 
-- Ensure you're using a compatible Go version (1.21+)
+- Ensure you're using a compatible Go version (1.25.6+)
 - Run: `go mod tidy` to sync dependencies
 - Run: `go test -v -race ./...` to check for race conditions
 

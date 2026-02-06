@@ -1,6 +1,6 @@
 module github.com/huijiro/go-charge/examples/hello-world
 
-go 1.25
+go 1.25.6
 
 require github.com/huijiro/go-charge v0.0.0
 
