@@ -451,7 +451,6 @@ MIT License - see [LICENSE.md](LICENSE.md) for details
 - **Framework Documentation**: [Package docs](https://pkg.go.dev/github.com/huijiro/go-charge)
 - **Todo API Example**: [`examples/todo-api/README.md`](examples/todo-api/README.md)
 - **Hello World Example**: [`examples/hello-world`](examples/hello-world)
-- **CI/CD Pipeline**: [`.github/CI-CD.md`](.github/CI-CD.md)
 
 ## FAQ
 
