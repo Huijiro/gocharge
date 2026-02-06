@@ -1,0 +1,89 @@
+# golangci-lint configuration
+# For more information see: https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 5m
+  skip-dirs:
+    - vendor
+    - .git
+
+linters:
+  enable:
+    # Bugs
+    - bugs
+    - errcheck
+    - errorlint
+    
+    # Code quality
+    - gocyclo
+    - gocritic
+    - gofmt
+    - goimports
+    - govet
+    - ineffassign
+    - misspell
+    - unused
+    
+    # Performance
+    - gofast
+    
+    # Style
+    - stylecheck
+    - revive
+    
+    # Security
+    - gosec
+    - nosprintfhostport
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  gocyclo:
+    min-complexity: 10
+
+  gosec:
+    severity: medium
+    confidence: medium
+    # Exclude test files
+    exclude-generated: true
+
+  govet:
+    check-shadowing: true
+    check-tests: true
+
+  stylecheck:
+    checks:
+      - all
+      - "-ST1000"  # Package comment style
+      - "-ST1020"  # Comment style
+
+  revive:
+    ignore-failures: false
+    enable-all-rules: false
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: defer
+      - name: error-naming
+      - name: error-return
+      - name: error-strings
+      - name: exported
+      - name: indent-error-flow
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: unexported-naming
+      - name: unused-parameter
+      - name: var-declaration
+      - name: var-naming
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on test files
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck

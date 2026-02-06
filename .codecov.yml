@@ -1,0 +1,26 @@
+# Codecov configuration
+# For more information see: https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  precision: 2
+  round: down
+  range: "70..100"
+
+ignore:
+  - "**/*_test.go"
+  - "**/mocks"
+  - "**/testdata"
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  show_carryforward_flags: false
+
+flags:
+  unittests:
+    paths:
+      - .
+    carryforward: true
