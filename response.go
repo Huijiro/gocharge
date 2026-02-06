@@ -5,12 +5,32 @@ import (
 	"net/http"
 )
 
+// Response[T] wraps an http.ResponseWriter with a typed response body field.
+//
+// Type parameter T is the type of data to be sent in the response JSON.
+// The embedded http.ResponseWriter provides access to HTTP-specific methods
+// like setting headers.
+//
+// Methods support chaining for fluent API design:
+//
+//	_, err := w.Status(gocharge.StatusCreated).JSON(newUser)
+//	return err
+//
+// Fields:
+//   - StatusCode: The HTTP status code to send (default 200)
+//   - Data: The response body data (set by JSON())
+//   - http.ResponseWriter: The underlying response writer
 type Response[T any] struct {
 	StatusCode int
 	Data       T
 	http.ResponseWriter
 }
 
+// StatusCode is a typed HTTP status code.
+//
+// Using a distinct type allows the package to provide convenient constants
+// for all standard HTTP status codes. Functions requiring http.StatusCode
+// from the standard library can use int(gocharge.StatusCreated), etc.
 type StatusCode int
 
 const (
@@ -87,14 +107,42 @@ const (
 	StatusNetworkAuthenticationRequired StatusCode = 511
 )
 
-// Status sets the HTTP status code and returns the response for chaining
+// Status sets the HTTP status code and returns the receiver for method chaining.
+//
+// If Status is not called, the default status code 200 OK is used.
+// Status must be called before JSON() or Error() to set a non-200 status code.
+//
+// Returns the receiver to allow chaining:
+//
+//	_, err := w.Status(gocharge.StatusCreated).JSON(user)
+//	_, err := w.Status(gocharge.StatusBadRequest).Error("INVALID", "Invalid input")
 func (r *Response[T]) Status(statusCode StatusCode) *Response[T] {
 	r.StatusCode = int(statusCode)
 	return r
 }
 
-// JSON writes the response data as JSON and returns the response with any error
-// This supports method chaining for further operations
+// JSON writes the typed response data as JSON.
+//
+// The data is encoded as JSON with Content-Type: application/json header.
+// The previously set status code (or default 200) is sent.
+// Returns the receiver and any error from JSON encoding.
+//
+// Once JSON is called, the HTTP response is sent and cannot be modified.
+//
+// Common patterns:
+//
+//	// Success response
+//	_, err := w.JSON(user)
+//	return err
+//
+//	// With custom status
+//	_, err := w.Status(gocharge.StatusCreated).JSON(newUser)
+//	return err
+//
+//	// With multiple headers (set before calling JSON)
+//	w.Header().Set("X-Total-Count", "100")
+//	_, err := w.JSON(items)
+//	return err
 func (r *Response[T]) JSON(data T) (*Response[T], error) {
 	r.Data = data
 	r.Header().Set("Content-Type", "application/json")
@@ -109,8 +157,23 @@ func (r *Response[T]) JSON(data T) (*Response[T], error) {
 	return r, err
 }
 
-// Error writes an error response with the given code and message
-// Returns the response and any encoding error
+// Error writes an error response with the given code and message.
+//
+// This is useful for handlers that want to send error responses without
+// returning from the handler function. The error is encoded as ErrorResponse JSON.
+//
+// If Status was called, that status code is used. Otherwise defaults to 500.
+// Once Error is called, the HTTP response is sent and cannot be modified.
+//
+// Note: Most handlers should return an error instead of calling Error(),
+// which allows the server's ErrorEncoder to handle error responses consistently.
+//
+// Example:
+//
+//	if !hasPermission {
+//	    _, err := w.Status(gocharge.StatusForbidden).Error("PERMISSION_DENIED", "Access denied")
+//	    return err
+//	}
 func (r *Response[T]) Error(code string, message string) (*Response[T], error) {
 	r.Header().Set("Content-Type", "application/json")
 
