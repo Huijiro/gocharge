@@ -87,12 +87,16 @@ const (
 	StatusNetworkAuthenticationRequired StatusCode = 511
 )
 
+// Status sets the HTTP status code and returns the response for chaining
 func (r *Response[T]) Status(statusCode StatusCode) *Response[T] {
 	r.StatusCode = int(statusCode)
 	return r
 }
 
-func (r *Response[T]) JSON(data T) error {
+// JSON writes the response data as JSON and returns the response with any error
+// This supports method chaining for further operations
+func (r *Response[T]) JSON(data T) (*Response[T], error) {
+	r.Data = data
 	r.Header().Set("Content-Type", "application/json")
 
 	if r.StatusCode != 0 {
@@ -102,9 +106,25 @@ func (r *Response[T]) JSON(data T) error {
 	}
 
 	err := json.NewEncoder(r).Encode(data)
-	if err != nil {
-		return err
+	return r, err
+}
+
+// Error writes an error response with the given code and message
+// Returns the response and any encoding error
+func (r *Response[T]) Error(code string, message string) (*Response[T], error) {
+	r.Header().Set("Content-Type", "application/json")
+
+	if r.StatusCode == 0 {
+		r.WriteHeader(http.StatusInternalServerError)
+	} else {
+		r.WriteHeader(r.StatusCode)
 	}
 
-	return nil
+	errResp := ErrorResponse{
+		Code:    code,
+		Message: message,
+	}
+
+	err := json.NewEncoder(r).Encode(errResp)
+	return r, err
 }

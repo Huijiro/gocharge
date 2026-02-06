@@ -2,6 +2,7 @@ package gocharge_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -22,9 +23,9 @@ func TestHandler(t *testing.T) {
 		Data:    "This is a test",
 	}
 
-	gocharge.RegisterHandler(server, "/testHandler", func(w gocharge.Response[TypeResponse], r gocharge.Request[string]) error {
-		w.JSON(*testResponse)
-		return nil
+	gocharge.RegisterHandler(server, "/testHandler", func(ctx context.Context, w gocharge.Response[TypeResponse], r gocharge.Request[string]) error {
+		_, err := w.JSON(*testResponse)
+		return err
 	})
 
 	response, err := http.Get("http://localhost:8080/testHandler")
@@ -43,7 +44,7 @@ func TestHandler(t *testing.T) {
 func TestStringHandler(t *testing.T) {
 	testResponse := "Hello World"
 
-	gocharge.RegisterHandler(server, "/testStringHandler", func(w gocharge.Response[string], r gocharge.Request[string]) error {
+	gocharge.RegisterHandler(server, "/testStringHandler", func(ctx context.Context, w gocharge.Response[string], r gocharge.Request[string]) error {
 		w.Write([]byte(testResponse))
 		return nil
 	})
@@ -67,15 +68,15 @@ func TestRequest(t *testing.T) {
 		Data:    "This is a test",
 	}
 
-	gocharge.RegisterHandler(server, "/testRequest", func(w gocharge.Response[TypeResponse], r gocharge.Request[TypeResponse]) error {
+	gocharge.RegisterHandler(server, "/testRequest", func(ctx context.Context, w gocharge.Response[TypeResponse], r gocharge.Request[TypeResponse]) error {
 		req, err := r.JSON()
 		if err != nil {
 			t.Errorf("Error: %v", err)
+			return err
 		}
 
-		w.JSON(*req)
-
-		return nil
+		_, err = w.JSON(*req)
+		return err
 	})
 
 	body, err := json.Marshal(testResponse)
