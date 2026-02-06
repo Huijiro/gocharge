@@ -452,23 +452,6 @@ MIT License - see [LICENSE.md](LICENSE.md) for details
 - **Todo API Example**: [`examples/todo-api/README.md`](examples/todo-api/README.md)
 - **Hello World Example**: [`examples/hello-world`](examples/hello-world)
 
-## FAQ
-
-**Q: Why no external dependencies?**  
-A: Standard library is production-ready and stable. Fewer dependencies = fewer security concerns and faster compile times.
-
-**Q: Does GoCharge support middleware?**  
-A: Yes! GoCharge provides a composable middleware chain with built-in logging and recovery middleware.
-
-**Q: Can I customize error responses?**  
-A: Absolutely. Implement the `ErrorEncoder` interface and pass it to `SetErrorEncoder()`.
-
-**Q: How do I handle database transactions?**  
-A: Store transaction context in request context using `WithValue()` and retrieve in handlers.
-
-**Q: Does GoCharge support WebSockets?**  
-A: Not natively, but you can use `http.Upgrader` within handlers since handlers have access to `http.ResponseWriter` and `http.Request`.
-
 ## Support
 
 - 🐛 [Report Issues](https://github.com/huijiro/go-charge/issues)
