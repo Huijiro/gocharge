@@ -53,6 +53,7 @@ type HandlerFunc[W any, R any] func(ctx context.Context, w Response[W], r Reques
 //
 // The handler is registered at the given path and wrapped to:
 //   - Extract context from the HTTP request
+//   - Extract path parameters and populate Request.PathParams
 //   - Create typed request/response wrappers
 //   - Call the typed handler function
 //   - Catch and encode any returned errors
@@ -62,6 +63,13 @@ type HandlerFunc[W any, R any] func(ctx context.Context, w Response[W], r Reques
 //   - "/api/users" - simple path
 //   - "/api/users/{id}" - with path segment
 //   - "/api/v1/organizations/{id}/projects/{pid}/tasks" - multiple segments
+//   - "GET /api/users/{id}" - with HTTP method (Go 1.22+)
+//
+// Path parameters are automatically extracted and accessible via:
+//   - r.PathParam().String("id") - extract string parameter
+//   - r.PathParam().Int("id") - extract integer parameter
+//   - r.PathParam().Int64("id") - extract int64 parameter
+//   - r.PathParam().UUID("id") - extract and validate UUID parameter
 //
 // Errors returned from the handler are automatically encoded by the server's
 // ErrorEncoder and sent as JSON responses with appropriate HTTP status codes.
@@ -70,6 +78,7 @@ type HandlerFunc[W any, R any] func(ctx context.Context, w Response[W], r Reques
 //
 //	gocharge.RegisterHandler(server, "/api/users", userHandler)
 //	gocharge.RegisterHandler(server, "/api/users/{id}", getUserHandler)
+//	gocharge.RegisterHandler(server, "GET /api/users/{id}", getDetailedUserHandler)
 func RegisterHandler[W any, R any](s *Server, path string, handler HandlerFunc[W, R]) {
 	// Log registration using server's logger
 	s.Logger.Info(context.Background(), "registering_handler", "path", path)
@@ -80,6 +89,8 @@ func RegisterHandler[W any, R any](s *Server, path string, handler HandlerFunc[W
 		ctx := r.Context()
 
 		// Create request wrapper
+		// Path parameters are accessed via r.PathParam().String/Int/Int64/UUID()
+		// which uses Go 1.22+ http.Request.PathValue() internally
 		request := Request[R]{
 			Request: *r,
 			Data:    *new(R),

@@ -30,11 +30,27 @@ func GetTodoByIDHandler(store *TodoStore) gc.HandlerFunc[TodoResponse, string] {
 	return func(ctx context.Context, w gc.Response[TodoResponse], r gc.Request[string]) error {
 		logger := gc.GetLogger()
 
-		// TODO: Extract ID from URL path
-		// For now, just demonstrate the error pattern
-		logger.Warn(ctx, "get todo handler - implement URL extraction")
+		// Extract ID from URL path
+		id, err := r.PathParam().String("id")
+		if err != nil {
+			logger.Warn(ctx, "missing todo id", "error", err)
+			return gc.NewAppError(gc.ErrBadRequest, err.Error())
+		}
 
-		return gc.NewAppError(gc.ErrNotFound, "Todo not found")
+		// Look up the todo in the store
+		todo, found := store.GetByID(id)
+		if !found {
+			logger.Warn(ctx, "todo not found", "id", id)
+			return gc.NewAppError(gc.ErrNotFound, "Todo not found")
+		}
+
+		logger.Info(ctx, "todo retrieved", "id", id)
+		_, err = w.JSON(TodoResponse{
+			ID:    todo.ID,
+			Title: todo.Title,
+			Done:  todo.Done,
+		})
+		return err
 	}
 }
 
@@ -54,6 +70,14 @@ func UpdateTodoHandler(store *TodoStore) gc.HandlerFunc[TodoResponse, UpdateTodo
 	return func(ctx context.Context, w gc.Response[TodoResponse], r gc.Request[UpdateTodoRequest]) error {
 		logger := gc.GetLogger()
 
+		// Extract ID from URL path
+		id, err := r.PathParam().String("id")
+		if err != nil {
+			logger.Warn(ctx, "missing todo id", "error", err)
+			return gc.NewAppError(gc.ErrBadRequest, err.Error())
+		}
+
+		// Parse the request body
 		req, err := r.JSON()
 		if err != nil {
 			logger.Warn(ctx, "invalid json in update todo request")
@@ -66,11 +90,25 @@ func UpdateTodoHandler(store *TodoStore) gc.HandlerFunc[TodoResponse, UpdateTodo
 			return gc.NewAppError(gc.ErrValidation, "Title is required")
 		}
 
-		// TODO: Extract ID from URL path
-		// For now, just demonstrate the error pattern
-		logger.Warn(ctx, "update todo handler - implement URL extraction")
+		if len(req.Title) > 100 {
+			logger.Warn(ctx, "title too long in update todo request")
+			return gc.NewAppError(gc.ErrValidation, "Title must be less than 100 characters")
+		}
 
-		return gc.NewAppError(gc.ErrNotFound, "Todo not found")
+		// Update the todo in the store
+		todo, found := store.Update(id, req.Title, req.Done)
+		if !found {
+			logger.Warn(ctx, "todo not found for update", "id", id)
+			return gc.NewAppError(gc.ErrNotFound, "Todo not found")
+		}
+
+		logger.Info(ctx, "todo updated", "id", id, "title", todo.Title)
+		_, err = w.JSON(TodoResponse{
+			ID:    todo.ID,
+			Title: todo.Title,
+			Done:  todo.Done,
+		})
+		return err
 	}
 }
 
@@ -89,10 +127,24 @@ func DeleteTodoHandler(store *TodoStore) gc.HandlerFunc[MessageResponse, string]
 	return func(ctx context.Context, w gc.Response[MessageResponse], r gc.Request[string]) error {
 		logger := gc.GetLogger()
 
-		// TODO: Extract ID from URL path
-		// For now, just demonstrate the error pattern
-		logger.Warn(ctx, "delete todo handler - implement URL extraction")
+		// Extract ID from URL path
+		id, err := r.PathParam().String("id")
+		if err != nil {
+			logger.Warn(ctx, "missing todo id", "error", err)
+			return gc.NewAppError(gc.ErrBadRequest, err.Error())
+		}
 
-		return gc.NewAppError(gc.ErrNotFound, "Todo not found")
+		// Delete the todo from the store
+		found := store.Delete(id)
+		if !found {
+			logger.Warn(ctx, "todo not found for deletion", "id", id)
+			return gc.NewAppError(gc.ErrNotFound, "Todo not found")
+		}
+
+		logger.Info(ctx, "todo deleted", "id", id)
+		_, err = w.Status(gc.StatusNoContent).JSON(MessageResponse{
+			Message: "Todo deleted",
+		})
+		return err
 	}
 }

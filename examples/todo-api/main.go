@@ -200,32 +200,6 @@ func listTodosHandler(store *TodoStore) gc.HandlerFunc[TodoListResponse, string]
 	}
 }
 
-// Get a single todo
-func getTodoHandler(store *TodoStore) gc.HandlerFunc[TodoResponse, string] {
-	return func(ctx context.Context, w gc.Response[TodoResponse], r gc.Request[string]) error {
-		logger := gc.GetLogger()
-
-		// In a real app, you'd extract the ID from the URL path
-		// For this example, we'll use a query parameter approach with RegisterHandler
-		// This handler demonstrates the pattern
-		logger.Warn(ctx, "get todo handler called - implement URL path extraction")
-
-		return gc.NewAppError(gc.ErrNotFound, "Todo not found")
-	}
-}
-
-// Delete a todo
-func deleteTodoHandler(store *TodoStore) gc.HandlerFunc[MessageResponse, string] {
-	return func(ctx context.Context, w gc.Response[MessageResponse], r gc.Request[string]) error {
-		logger := gc.GetLogger()
-
-		// In a real app, you'd extract the ID from the URL path
-		logger.Warn(ctx, "delete todo handler called - implement URL path extraction")
-
-		return gc.NewAppError(gc.ErrNotFound, "Todo not found")
-	}
-}
-
 // ============= Main =============
 
 func main() {
@@ -249,8 +223,11 @@ func main() {
 
 	// Register handlers
 	gc.RegisterHandler(server, "/health", healthHandler)
-	gc.RegisterHandler(server, "/api/todos", createTodoHandler(store))
-	gc.RegisterHandler(server, "/api/todos", listTodosHandler(store))
+	gc.RegisterHandler(server, "POST /api/todos", createTodoHandler(store))
+	gc.RegisterHandler(server, "GET /api/todos", listTodosHandler(store))
+	gc.RegisterHandler(server, "GET /api/todos/{id}", GetTodoByIDHandler(store))
+	gc.RegisterHandler(server, "PUT /api/todos/{id}", UpdateTodoHandler(store))
+	gc.RegisterHandler(server, "DELETE /api/todos/{id}", DeleteTodoHandler(store))
 
 	// Start server
 	logger.Info(context.Background(), "server starting", "addr", ":8080")

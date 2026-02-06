@@ -31,9 +31,9 @@ The server will start on `http://localhost:8080`
 ## API Endpoints
 
 ### Health Check
-```bash
-GET /health
-```
+**GET /health**
+
+Health check endpoint for monitoring.
 
 Response:
 ```json
@@ -44,10 +44,12 @@ Response:
 ```
 
 ### Create Todo
-```bash
-POST /api/todos
-Content-Type: application/json
+**POST /api/todos**
 
+Create a new todo item.
+
+Request:
+```json
 {
   "title": "Buy milk"
 }
@@ -62,10 +64,18 @@ Response (201 Created):
 }
 ```
 
-### List Todos
-```bash
-GET /api/todos
+Error response (400 Bad Request):
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Title is required"
+}
 ```
+
+### List Todos
+**GET /api/todos**
+
+List all todo items.
 
 Response:
 ```json
@@ -75,13 +85,107 @@ Response:
       "id": "todo-1",
       "title": "Buy milk",
       "done": false
+    },
+    {
+      "id": "todo-2",
+      "title": "Learn GoCharge",
+      "done": true
     }
   ],
-  "count": 1
+  "count": 2
+}
+```
+
+### Get Todo by ID
+**GET /api/todos/{id}**
+
+Get a single todo item by ID. Uses path parameter extraction.
+
+Path Parameters:
+- `id` (string) - The todo ID (e.g., "todo-1")
+
+Response (200 OK):
+```json
+{
+  "id": "todo-1",
+  "title": "Buy milk",
+  "done": false
+}
+```
+
+Error response (404 Not Found):
+```json
+{
+  "code": "NOT_FOUND",
+  "message": "Todo not found"
+}
+```
+
+### Update Todo
+**PUT /api/todos/{id}**
+
+Update an existing todo item. Uses path parameter extraction.
+
+Path Parameters:
+- `id` (string) - The todo ID (e.g., "todo-1")
+
+Request:
+```json
+{
+  "title": "Buy milk and eggs",
+  "done": true
+}
+```
+
+Response (200 OK):
+```json
+{
+  "id": "todo-1",
+  "title": "Buy milk and eggs",
+  "done": true
+}
+```
+
+Error response (404 Not Found):
+```json
+{
+  "code": "NOT_FOUND",
+  "message": "Todo not found"
+}
+```
+
+Error response (400 Bad Request):
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Title is required"
+}
+```
+
+### Delete Todo
+**DELETE /api/todos/{id}**
+
+Delete a todo item. Uses path parameter extraction.
+
+Path Parameters:
+- `id` (string) - The todo ID (e.g., "todo-1")
+
+Response (204 No Content) - Empty body on success
+
+Error response (404 Not Found):
+```json
+{
+  "code": "NOT_FOUND",
+  "message": "Todo not found"
 }
 ```
 
 ## Example Usage
+
+### Health check
+```bash
+curl http://localhost:8080/health
+```
 
 ### Create a todo
 ```bash
@@ -90,15 +194,70 @@ curl -X POST http://localhost:8080/api/todos \
   -d '{"title": "Learn GoCharge"}'
 ```
 
-### List todos
+Response:
+```json
+{
+  "id": "todo-1",
+  "title": "Learn GoCharge",
+  "done": false
+}
+```
+
+### List all todos
 ```bash
 curl http://localhost:8080/api/todos
 ```
 
-### Health check
-```bash
-curl http://localhost:8080/health
+Response:
+```json
+{
+  "todos": [
+    {
+      "id": "todo-1",
+      "title": "Learn GoCharge",
+      "done": false
+    }
+  ],
+  "count": 1
+}
 ```
+
+### Get a single todo by ID
+```bash
+curl http://localhost:8080/api/todos/todo-1
+```
+
+Response:
+```json
+{
+  "id": "todo-1",
+  "title": "Learn GoCharge",
+  "done": false
+}
+```
+
+### Update a todo
+```bash
+curl -X PUT http://localhost:8080/api/todos/todo-1 \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Learn GoCharge Framework", "done": true}'
+```
+
+Response:
+```json
+{
+  "id": "todo-1",
+  "title": "Learn GoCharge Framework",
+  "done": true
+}
+```
+
+### Delete a todo
+```bash
+curl -X DELETE http://localhost:8080/api/todos/todo-1
+```
+
+Response: 204 No Content (empty body)
 
 ### Test validation error
 ```bash
@@ -112,6 +271,19 @@ Error response (400 Bad Request):
 {
   "code": "VALIDATION_ERROR",
   "message": "Title is required"
+}
+```
+
+### Test 404 Not Found
+```bash
+curl http://localhost:8080/api/todos/nonexistent
+```
+
+Error response (404 Not Found):
+```json
+{
+  "code": "NOT_FOUND",
+  "message": "Todo not found"
 }
 ```
 
@@ -132,8 +304,9 @@ Error response (400 Bad Request):
 - `healthHandler` - Health check endpoint
 - `createTodoHandler` - Create new todo
 - `listTodosHandler` - List all todos
-- `getTodoHandler` - Get single todo (template)
-- `deleteTodoHandler` - Delete todo (template)
+- `GetTodoByIDHandler` - Get single todo by ID (uses path parameter extraction)
+- `UpdateTodoHandler` - Update a todo (uses path parameter extraction)
+- `DeleteTodoHandler` - Delete a todo (uses path parameter extraction)
 
 ### Middleware
 - `LoggingMiddleware` - Logs all requests and responses
@@ -182,18 +355,48 @@ chain.Use(middleware.LoggingMiddleware)
 chain.Use(middleware.RecoveryMiddleware)
 ```
 
+### 7. Path Parameter Extraction
+```go
+// Extract string parameter from path
+id, err := r.PathParam().String("id")
+if err != nil {
+    return gc.NewAppError(gc.ErrBadRequest, err.Error())
+}
+
+// Extract and validate UUID parameter
+uuid, err := r.PathParam().UUID("id")
+
+// Extract integer parameter
+count, err := r.PathParam().Int("count")
+
+// Extract int64 parameter
+itemID, err := r.PathParam().Int64("itemId")
+```
+
+### 8. Method-Aware Route Registration
+```go
+// Register handlers with HTTP method prefix (Go 1.22+)
+gc.RegisterHandler(server, "GET /api/todos", listHandler)
+gc.RegisterHandler(server, "POST /api/todos", createHandler)
+gc.RegisterHandler(server, "GET /api/todos/{id}", getHandler)
+gc.RegisterHandler(server, "PUT /api/todos/{id}", updateHandler)
+gc.RegisterHandler(server, "DELETE /api/todos/{id}", deleteHandler)
+```
+
 ## Next Steps
 
 To extend this example:
 
 1. **Database**: Replace in-memory storage with database/sql
 2. **Authentication**: Add JWT middleware
-3. **Validation**: Add more comprehensive validation
-4. **Testing**: Add integration tests
-5. **URL Parameters**: Extract todo ID from path parameters
-6. **Custom Errors**: Implement custom error encoder
-7. **Rate Limiting**: Add rate limiting middleware
-8. **CORS**: Add CORS middleware for frontend integration
+3. **Validation**: Add more comprehensive validation with field-level rules
+4. **Testing**: Add more comprehensive integration tests
+5. **Custom Errors**: Implement custom error encoder with detailed error fields
+6. **Rate Limiting**: Add rate limiting middleware
+7. **CORS**: Add CORS middleware for frontend integration
+8. **Pagination**: Add pagination support to list endpoint
+9. **Filtering**: Add filtering and sorting to list endpoint
+10. **Batch Operations**: Add batch create/delete endpoints
 
 ## Learning Resources
 
