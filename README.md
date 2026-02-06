@@ -1,6 +1,6 @@
 # GoCharge
 
-A **production-ready, fully typed HTTP backend framework** for Go 1.18+ using only the Go standard library.
+A **production-ready, fully typed HTTP backend framework** for Go 1.25.6+ using only the Go standard library.
 
 [![Go Version](https://img.shields.io/badge/go-1.25.6+-00ADD8?style=flat-square&logo=go)](https://golang.org/doc/devel/release)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE.md)
