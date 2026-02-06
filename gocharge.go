@@ -105,6 +105,7 @@ package gocharge
 
 import (
 	"net/http"
+	"time"
 )
 
 // Server is the main HTTP server for gocharge applications.
@@ -143,8 +144,9 @@ func New(addr string) *Server {
 	mux := http.NewServeMux()
 	return &Server{
 		Server: http.Server{
-			Addr:    addr,
-			Handler: mux,
+			Addr:              addr,
+			Handler:           mux,
+			ReadHeaderTimeout: 15 * time.Second,
 		},
 		Handler:         mux,
 		ErrorEncoder:    &DefaultErrorEncoder{},
