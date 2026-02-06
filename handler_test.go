@@ -2,6 +2,7 @@ package gocharge_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -22,18 +23,22 @@ func TestHandler(t *testing.T) {
 		Data:    "This is a test",
 	}
 
-	gocharge.RegisterHandler(server, "/testHandler", func(w gocharge.Response[TypeResponse], r gocharge.Request[string]) error {
-		w.JSON(*testResponse)
-		return nil
+	gocharge.RegisterHandler(server, "/testHandler", func(ctx context.Context, w gocharge.Response[TypeResponse], r gocharge.Request[string]) error {
+		_, err := w.JSON(*testResponse)
+		return err
 	})
 
 	response, err := http.Get("http://localhost:8080/testHandler")
 	if err != nil {
 		t.Errorf("Error: %v", err)
 	}
+	defer response.Body.Close()
 
 	serverResponse := &TypeResponse{}
 	err = json.NewDecoder(response.Body).Decode(&serverResponse)
+	if err != nil {
+		t.Errorf("Error decoding response: %v", err)
+	}
 
 	if !reflect.DeepEqual(serverResponse, testResponse) {
 		t.Errorf("Expected: %v, got: %v", testResponse, serverResponse)
@@ -43,7 +48,7 @@ func TestHandler(t *testing.T) {
 func TestStringHandler(t *testing.T) {
 	testResponse := "Hello World"
 
-	gocharge.RegisterHandler(server, "/testStringHandler", func(w gocharge.Response[string], r gocharge.Request[string]) error {
+	gocharge.RegisterHandler(server, "/testStringHandler", func(ctx context.Context, w gocharge.Response[string], r gocharge.Request[string]) error {
 		w.Write([]byte(testResponse))
 		return nil
 	})
@@ -55,6 +60,9 @@ func TestStringHandler(t *testing.T) {
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		t.Errorf("Error reading body: %v", err)
+	}
 
 	if string(body) != testResponse {
 		t.Errorf("Expected: %v, got: %v", testResponse, string(body))
@@ -67,18 +75,21 @@ func TestRequest(t *testing.T) {
 		Data:    "This is a test",
 	}
 
-	gocharge.RegisterHandler(server, "/testRequest", func(w gocharge.Response[TypeResponse], r gocharge.Request[TypeResponse]) error {
+	gocharge.RegisterHandler(server, "/testRequest", func(ctx context.Context, w gocharge.Response[TypeResponse], r gocharge.Request[TypeResponse]) error {
 		req, err := r.JSON()
 		if err != nil {
 			t.Errorf("Error: %v", err)
+			return err
 		}
 
-		w.JSON(*req)
-
-		return nil
+		_, err = w.JSON(*req)
+		return err
 	})
 
 	body, err := json.Marshal(testResponse)
+	if err != nil {
+		t.Errorf("Error marshaling: %v", err)
+	}
 
 	request, err := http.NewRequest("GET", "http://localhost:8080/testRequest", bytes.NewBuffer(body))
 	if err != nil {
